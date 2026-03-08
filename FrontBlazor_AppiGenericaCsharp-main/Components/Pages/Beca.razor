@@ -2,7 +2,7 @@
 @rendermode InteractiveServer
 @inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
 
-<PageTitle>Beca</PageTitle>
+<PageTitle>Becas</PageTitle>
 
 <div class="container mt-4">
     <h3>Becas</h3>
@@ -37,13 +37,18 @@
                 <div class="row">
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Institución</label>
-                        <input class="form-control" @bind="campoInstitucion"/>
+                        <label class="form-label">Estudios (ID)</label>
+                        <input class="form-control" type="number" @bind="campoEstudios"/>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Tipo Beca</label>
+                        <label class="form-label">Tipo</label>
                         <input class="form-control" @bind="campoTipo"/>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Institución</label>
+                        <input class="form-control" @bind="campoInstitucion"/>
                     </div>
 
                     <div class="col-md-6 mb-3">
@@ -74,11 +79,11 @@
         <table class="table table-striped table-hover">
             <thead class="table-dark">
                 <tr>
-                    <th>ID</th>
-                    <th>Institución</th>
+                    <th>Estudios</th>
                     <th>Tipo</th>
-                    <th>Inicio</th>
-                    <th>Fin</th>
+                    <th>Institución</th>
+                    <th>Fecha Inicio</th>
+                    <th>Fecha Fin</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -87,12 +92,11 @@
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["id"]</td>
+                        <td>@reg["estudios"]</td>
+                        <td>@reg["tipo"]</td>
                         <td>@reg["institucion"]</td>
-                        <td>@reg["tipo_beca"]</td>
                         <td>@reg["fecha_inicio"]</td>
                         <td>@reg["fecha_fin"]</td>
-                        
 
                         <td>
                             <button class="btn btn-warning btn-sm me-1"
@@ -124,15 +128,14 @@
     private string mensaje = "";
     private bool exito = false;
 
-    private string campoInstitucion = "";
+    private int campoEstudios = 0;
     private string campoTipo = "";
+    private string campoInstitucion = "";
     private DateTime campoInicio = DateTime.Now;
-    private DateTime campoFin = DateTime.Now;
-    private int campoDocente = 0;
-    private string campoDescripcion = "";
+    private DateTime? campoFin = null;
 
     private int? limite = null;
-    private int idEditar = 0;
+    private int estudiosEditar = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -150,11 +153,11 @@
     {
         editando = false;
 
-        campoInstitucion = "";
+        campoEstudios = 0;
         campoTipo = "";
+        campoInstitucion = "";
         campoInicio = DateTime.Now;
-        campoFin = DateTime.Now;
-        
+        campoFin = null;
 
         mostrarFormulario = true;
     }
@@ -163,11 +166,15 @@
     {
         editando = true;
 
-        idEditar = int.Parse(reg["id"]!.ToString()!);
+        estudiosEditar = int.Parse(reg["estudios"]!.ToString()!);
 
+        campoEstudios = estudiosEditar;
+        campoTipo = reg["tipo"]?.ToString() ?? "";
         campoInstitucion = reg["institucion"]?.ToString() ?? "";
-        campoTipo = reg["tipo_beca"]?.ToString() ?? "";
-        
+        campoInicio = DateTime.Parse(reg["fecha_inicio"]!.ToString()!);
+
+        if (reg["fecha_fin"] != null)
+            campoFin = DateTime.Parse(reg["fecha_fin"]!.ToString()!);
 
         mostrarFormulario = true;
     }
@@ -176,22 +183,29 @@
     {
         var datos = new Dictionary<string, object?>
         {
+            ["estudios"] = campoEstudios,
+            ["tipo"] = campoTipo,
             ["institucion"] = campoInstitucion,
-            ["tipo_beca"] = campoTipo,
             ["fecha_inicio"] = campoInicio,
-            ["fecha_fin"] = campoFin,
-            
+            ["fecha_fin"] = campoFin
         };
 
         if (editando)
         {
-            var resultado = await Api.ActualizarAsync("beca", "id", idEditar.ToString(), datos);
+            var resultado = await Api.ActualizarAsync(
+                "beca",
+                "estudios",
+                estudiosEditar.ToString(),
+                datos
+            );
+
             exito = resultado.exito;
             mensaje = resultado.mensaje;
         }
         else
         {
             var resultado = await Api.CrearAsync("beca", datos);
+
             exito = resultado.exito;
             mensaje = resultado.mensaje;
         }
@@ -205,9 +219,13 @@
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        int id = int.Parse(reg["id"]!.ToString()!);
+        int id = int.Parse(reg["estudios"]!.ToString()!);
 
-        var resultado = await Api.EliminarAsync("beca", "id", id.ToString());
+        var resultado = await Api.EliminarAsync(
+            "beca",
+            "estudios",
+            id.ToString()
+        );
 
         exito = resultado.exito;
         mensaje = resultado.mensaje;
