@@ -21,7 +21,7 @@ Blazor es un framework de Microsoft para construir interfaces web interactivas u
 │                                                             │
 │  El codigo C# se ejecuta en el SERVIDOR.                    │
 │  El navegador solo muestra HTML.                            │
-│  La comunicacion es en tiempo real via SignalR (WebSocket).  │
+│  La comunicacion es en tiempo real via SignalR (WebSocket). │
 │                                                             │
 │  Ventaja: Simple, rapido de cargar, facil de depurar.       │
 │  Desventaja: Necesita conexion constante al servidor.       │
